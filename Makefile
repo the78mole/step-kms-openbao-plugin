@@ -1,5 +1,5 @@
 PKG?=github.com/smallstep/step-kms-plugin
-BINNAME?=step-kms-plugin
+BINNAME?=step-kms-openbao-plugin
 GOLANG_CROSS_VERSION?=v1.25
 
 # Set V to 1 for verbose output from the Makefile
@@ -83,10 +83,10 @@ build-fips:
 generate: build
 	$Q go generate ./...
 	$Q mkdir -p completions
-	$Q bin/step-kms-plugin completion bash > completions/bash_completion
-	$Q bin/step-kms-plugin completion fish > completions/fish_completion
-	$Q bin/step-kms-plugin completion powershell > completions/powershell_completion
-	$Q bin/step-kms-plugin completion zsh > completions/zsh_completion
+	$Q bin/$(BINNAME) completion bash > completions/bash_completion
+	$Q bin/$(BINNAME) completion fish > completions/fish_completion
+	$Q bin/$(BINNAME) completion powershell > completions/powershell_completion
+	$Q bin/$(BINNAME) completion zsh > completions/zsh_completion
 
 .PHONY: generate
 
@@ -97,7 +97,28 @@ generate: build
 test:
 	$Q go test -coverprofile=coverage.out ./...
 
-.PHONY: test
+# integration-test runs the OpenBao integration tests.
+# Requires a running OpenBao instance with Transit secrets engine enabled.
+# Environment variables:
+#   OPENBAO_ADDR  - OpenBao server address (default: http://127.0.0.1:8200)
+#   OPENBAO_TOKEN - Authentication token (default: dev-root-token)
+#
+# Quick start with Docker:
+#   docker run -d --name openbao-test -p 8200:8200 \
+#     -e BAO_DEV_ROOT_TOKEN_ID=dev-root-token \
+#     -e BAO_DEV_LISTEN_ADDRESS=0.0.0.0:8200 \
+#     --cap-add=IPC_LOCK quay.io/openbao/openbao:latest
+#
+#   curl -s -X POST http://127.0.0.1:8200/v1/sys/mounts/transit \
+#     -H "X-Vault-Token: dev-root-token" -d '{"type":"transit"}'
+#
+#   make integration-test
+integration-test:
+	$Q OPENBAO_ADDR=$${OPENBAO_ADDR:-http://127.0.0.1:8200} \
+	   OPENBAO_TOKEN=$${OPENBAO_TOKEN:-dev-root-token} \
+	   go test -tags integration -v -count=1 ./kms/openbao/ -run TestIntegration
+
+.PHONY: test integration-test
 
 #########################################
 # Linting

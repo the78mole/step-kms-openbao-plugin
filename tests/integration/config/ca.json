@@ -1,0 +1,28 @@
+{
+  "root": "/home/step/certs/root_ca.crt",
+  "federatedRoots": [],
+  "crt": "/home/step/certs/intermediate_ca.crt",
+  "key": "/home/step/secrets/intermediate_ca_key",
+  "address": ":9000",
+  "dnsNames": ["step-ca", "localhost"],
+  "logger": {
+    "format": "text"
+  },
+  "db": {
+    "type": "badgerV2",
+    "dataSource": "/home/step/db"
+  },
+  "authority": {
+    "provisioners": [
+      {
+        "type": "JWK",
+        "name": "admin",
+        "key": {}
+      }
+    ]
+  },
+  "kms": {
+    "type": "openbao",
+    "uri": "openbao:mount=transit?address=http://openbao:8200"
+  }
+}

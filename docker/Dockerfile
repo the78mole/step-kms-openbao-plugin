@@ -9,7 +9,7 @@ RUN make V=1 build
 
 FROM smallstep/step-cli:latest
 
-COPY --from=builder /src/bin/step-kms-plugin /usr/local/bin/step-kms-plugin
+COPY --from=builder /src/bin/step-kms-openbao-plugin /usr/local/bin/step-kms-openbao-plugin
 
 USER root
 RUN apk add --no-cache pcsc-lite pcsc-lite-libs

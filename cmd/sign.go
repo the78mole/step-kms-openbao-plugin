@@ -58,35 +58,35 @@ or a binary data filename via the --in flag.
 If you use the --in flag with an EC or RSA key, this command will generate the
 digest of the data file for you.`,
 	Example: `  # Sign the given file using a key in the PKCS #11 module.
-  step-kms-plugin sign --in data.bin \
+  step-kms-openbao-plugin sign --in data.bin \
   --kms 'pkcs11:module-path=/path/to/libsofthsm2.so;token=softhsm?pin-value=pass' \
   'pkcs11:id=1000'
 
   # Sign a digest using a key in Google's Cloud KMS.
-  step-kms-plugin sign 1b8de4254213f8c3f784b3da4611eaeec1e720e74b4357029f8271b4ef9e1c2c \
+  step-kms-openbao-plugin sign 1b8de4254213f8c3f784b3da4611eaeec1e720e74b4357029f8271b4ef9e1c2c \
   cloudkms:projects/my-project/locations/us-west1/keyRings/my-keyring/cryptoKeys/my-rsa-key/cryptoKeyVersions/1
 
   # Sign and verify using RSA PKCS #1 with SHA512:
-  step-kms-plugin sign --in data.bin --verify --alg SHA512 \
+  step-kms-openbao-plugin sign --in data.bin --verify --alg SHA512 \
   --kms 'pkcs11:module-path=/path/to/libsofthsm2.so;token=softhsm?pin-value=pass' \
   'pkcs11:object=my-rsa-key'
 
   # Sign a file using an Ed25519 key in the ssh-agent:
-  step-kms-plugin sign --in data.bin sshagentkms:user@localhost
+  step-kms-openbao-plugin sign --in data.bin sshagentkms:user@localhost
 
   # Sign the header and payload of a JWT to produce the signature:
-  step-kms-plugin sign --in data.jwt --format jws \
+  step-kms-openbao-plugin sign --in data.jwt --format jws \
   --kms 'pkcs11:module-path=/path/to/libsofthsm2.so;token=softhsm?pin-value=pass' \
   'pkcs11:id=1000
  
   # Sign a file using a key in the default TPM KMS:
-  step-kms-plugin sign --in data.bin tpmkms:name=my-key
+  step-kms-openbao-plugin sign --in data.bin tpmkms:name=my-key
 
   # Sign a file using a key in the default a TSS2 PEM:
-  step-kms-plugin sign --in data.bin tpmkms:path=tss2.pem
+  step-kms-openbao-plugin sign --in data.bin tpmkms:path=tss2.pem
 
   # Sign and verify using a key in the default TPM KMS:
-  step-kms-plugin sign --in data.bin --verify tpmkms:name=my-key`,
+  step-kms-openbao-plugin sign --in data.bin --verify tpmkms:name=my-key`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if l := len(args); l != 1 && l != 2 {
 			return showErrUsage(cmd)
