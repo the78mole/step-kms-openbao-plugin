@@ -1,5 +1,5 @@
 PKG?=github.com/smallstep/step-kms-plugin
-BINNAME?=step-kms-plugin
+BINNAME?=step-kms-openbao-plugin
 GOLANG_CROSS_VERSION?=v1.25
 
 # Set V to 1 for verbose output from the Makefile
@@ -83,10 +83,10 @@ build-fips:
 generate: build
 	$Q go generate ./...
 	$Q mkdir -p completions
-	$Q bin/step-kms-plugin completion bash > completions/bash_completion
-	$Q bin/step-kms-plugin completion fish > completions/fish_completion
-	$Q bin/step-kms-plugin completion powershell > completions/powershell_completion
-	$Q bin/step-kms-plugin completion zsh > completions/zsh_completion
+	$Q bin/$(BINNAME) completion bash > completions/bash_completion
+	$Q bin/$(BINNAME) completion fish > completions/fish_completion
+	$Q bin/$(BINNAME) completion powershell > completions/powershell_completion
+	$Q bin/$(BINNAME) completion zsh > completions/zsh_completion
 
 .PHONY: generate
 

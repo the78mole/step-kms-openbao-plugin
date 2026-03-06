@@ -35,29 +35,29 @@ var certificateCmd = &cobra.Command{
 	Short: "print or import a certificate in a KMS",
 	Long:  `This command, if the KMS supports it, prints or imports a certificate in a KMS.`,
 	Example: `  # Import a certificate to a PKCS #11 module:
-  step-kms-plugin certificate --import cert.pem \
+  step-kms-openbao-plugin certificate --import cert.pem \
   --kms 'pkcs11:module-path=/path/to/libsofthsm2.so;token=softhsm?pin-value=pass' \
   'pkcs11:id=2000;object=my-cert'
 
   # Print a previously stored certificate:
-  step-kms-plugin certificate \
+  step-kms-openbao-plugin certificate \
   --kms 'pkcs11:module-path=/path/to/libsofthsm2.so;token=softhsm?pin-value=pass' \
   'pkcs11:id=2000;object=my-cert'
   
   # Import a certificate for an Attestation Key (AK), using the default TPM KMS:
-  step-kms-plugin certificate --import cert.pem 'tpmkms:name=my-ak;ak=true'
+  step-kms-openbao-plugin certificate --import cert.pem 'tpmkms:name=my-ak;ak=true'
 
   # Import a certificate, using the default TPM KMS:
-  step-kms-plugin certificate --import cert.pem tpmkms:name=my-key
+  step-kms-openbao-plugin certificate --import cert.pem tpmkms:name=my-key
 
   # Print a previously stored certificate for an Attestation Key (AK), using the default TPM KMS:
-  step-kms-plugin certificate 'tpmkms:name=my-ak;ak=true'
+  step-kms-openbao-plugin certificate 'tpmkms:name=my-ak;ak=true'
 
   # Print a previously stored certificate, using the default TPM KMS:
-  step-kms-plugin certificate tpmkms:name=my-key
+  step-kms-openbao-plugin certificate tpmkms:name=my-key
 
   # Print a previously stored certificate chain, using the default TPM KMS:
-  step-kms-plugin certificate --bundle tpmkms:name=my-key`,
+  step-kms-openbao-plugin certificate --bundle tpmkms:name=my-key`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
 			return showErrUsage(cmd)

@@ -54,26 +54,26 @@ account key fingerprint separated by a "." character:
 
   keyAuthorization = token || '.' || base64url(Thumbprint(accountKey))`,
 	Example: `  # Get the attestation certificate from a YubiKey:
-  step-kms-plugin attest yubikey:slot-id=9c
+  step-kms-openbao-plugin attest yubikey:slot-id=9c
 
   # Create an attestation object used in an ACME device-attest-01 flow:
-  echo -n <token>.<fingerprint> | step-kms-plugin attest --format step yubikey:slot-id=9c
+  echo -n <token>.<fingerprint> | step-kms-openbao-plugin attest --format step yubikey:slot-id=9c
   
   # Get the attestation certificate belonging to an Attestion Key, using the default TPM KMS:
-  step-kms-plugin attest 'tpmkms:name=my-ak;ak=true'
+  step-kms-openbao-plugin attest 'tpmkms:name=my-ak;ak=true'
 
   # Get the attestation certificate chain for an attested key, using the default TPM KMS:
-  step-kms-plugin attest tpmkms:name=my-attested-key
+  step-kms-openbao-plugin attest tpmkms:name=my-attested-key
 
   # Get the attestation certificate for an attested key, using the default TPM KMS:
-  step-kms-plugin attest --leaf tpmkms:name=my-attested-key
+  step-kms-openbao-plugin attest --leaf tpmkms:name=my-attested-key
 
   # Create an attestation statement for an attested key, using the default TPM KMS:
-  step-kms-plugin attest --format tpm tpmkms:name=my-attested-key
+  step-kms-openbao-plugin attest --format tpm tpmkms:name=my-attested-key
 
   # Create an attestation statement for an attested key, using the default TPM KMS,
   enrolling with a Smallstep Attestation CA if no AK certificate is available (yet):
-  step-kms-plugin attest --format tpm 'tpmkms:name=my-attested-key;attestation-ca-url=https://my.attestation.ca/url;attestation-ca-root=/path/to/trusted/roots.pem'`,
+  step-kms-openbao-plugin attest --format tpm 'tpmkms:name=my-attested-key;attestation-ca-url=https://my.attestation.ca/url;attestation-ca-root=/path/to/trusted/roots.pem'`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
 			return showErrUsage(cmd)

@@ -47,27 +47,27 @@ PKCS #1 v.1.5 and RSA-OAEP. Google Cloud KMS only supports RSA-OAEP and doesn't
 support labels, so you should use "--no-label" when encrypting to a key in Google
 Cloud KMS.`,
 	Example: `  # Decrypts a input given by stdin using RSA PKCS#1 v1.5:
-  cat message.b64 | step-kms-plugin decrypt yubikey:slot-id=82
+  cat message.b64 | step-kms-openbao-plugin decrypt yubikey:slot-id=82
 
   # Decrypts a given file using RSA-OAEP:
-  step-kms-plugin decrypt --oaep --in message.b64 \
+  step-kms-openbao-plugin decrypt --oaep --in message.b64 \
     --kms 'pkcs11:module-path=/usr/local/lib/pkcs11/yubihsm_pkcs11.dylib;token=YubiHSM?pin-value=0001password' \
 	'pkcs11:object=my-rsa-key'
 
   # Decrypts a given file using RSA-OAEP and no label:
-  step-kms-plugin decrypt --oaep --in message.b64 --no-label \
+  step-kms-openbao-plugin decrypt --oaep --in message.b64 --no-label \
     --kms 'cloudkms:' \
     'projects/my-project-id/locations/global/keyRings/my-decrypter-ring/cryptoKeys/my-decrypter/cryptoKeyVersions/1'
 
 
   # Decrypts a given file using RSA-OAEP and a custom label:
-  step-kms-plugin decrypt --oaep --in message.b64 label my-custom-label \
+  step-kms-openbao-plugin decrypt --oaep --in message.b64 label my-custom-label \
     --kms 'pkcs11:module-path=/usr/local/lib/pkcs11/yubihsm_pkcs11.dylib;token=YubiHSM?pin-value=0001password' \
 	'pkcs11:object=my-rsa-key'
 
 
   # Decrypts a given file encoded in hexadecimal format from a file in disk:
-  step-kms-plugin decrypt --format hex --in message.hex --kms softkms: rsa.priv`,
+  step-kms-openbao-plugin decrypt --format hex --in message.hex --kms softkms: rsa.priv`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if l := len(args); l != 1 {
 			return showErrUsage(cmd)

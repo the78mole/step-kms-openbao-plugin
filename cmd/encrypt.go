@@ -53,25 +53,25 @@ PKCS #1 v.1.5 and RSA-OAEP. Google Cloud KMS only supports RSA-OAEP and doesn't
 support labels, so you should use "--no-label" when encrypting to a key in Google
 Cloud KMS.`,
 	Example: `  # Encrypt a password given by stdin using RSA PKCS#1 v1.5:
-  echo password | step-kms-plugin encrypt yubikey:slot-id=82
+  echo password | step-kms-openbao-plugin encrypt yubikey:slot-id=82
 
   # Encrypt a given file using RSA-OAEP:
-  step-kms-plugin encrypt --oaep --in message.txt \
+  step-kms-openbao-plugin encrypt --oaep --in message.txt \
     --kms 'pkcs11:module-path=/usr/local/lib/pkcs11/yubihsm_pkcs11.dylib;token=YubiHSM?pin-value=0001password' \
 	'pkcs11:object=my-rsa-key'
 
   # Encrypt a given file using RSA-OAEP without an OAEP label:
-  step-kms-plugin encrypt --oaep --in message.txt --no-label \
+  step-kms-openbao-plugin encrypt --oaep --in message.txt --no-label \
   --kms 'cloudkms:' \
   'projects/my-project-id/locations/global/keyRings/my-decrypter-ring/cryptoKeys/my-decrypter/cryptoKeyVersions/1'
 
   # Encrypt a given file using RSA-OAEP and a custom label:
-  step-kms-plugin encrypt --oaep --in message.txt --label my-custom-label \
+  step-kms-openbao-plugin encrypt --oaep --in message.txt --label my-custom-label \
     --kms 'pkcs11:module-path=/usr/local/lib/pkcs11/yubihsm_pkcs11.dylib;token=YubiHSM?pin-value=0001password' \
 	'pkcs11:object=my-rsa-key'
 
   # Encrypt a given file using a key in disk using the hexadecimal format:
-  step-kms-plugin encrypt --format hex --in message.txt --kms softkms: rsa.pub
+  step-kms-openbao-plugin encrypt --format hex --in message.txt --kms softkms: rsa.pub
   
   # Encrypt a given file using an Attestation Key in the default TPM KMS:
   step kms encrypt --in message.txt 'tpmkms:my-ak;ak=true'

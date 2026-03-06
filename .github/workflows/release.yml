@@ -1,4 +1,4 @@
-name: Create Release & Upload Assets
+name: Create Release & Upload Assets (OpenBao Edition)
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   ci:
-    uses: smallstep/step-kms-plugin/.github/workflows/ci.yml@main
+    uses: the78mole/step-kms-openbao-plugin/.github/workflows/ci.yml@main
     secrets: inherit
 
   create_release:
@@ -21,7 +21,7 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     env:
-      DOCKER_IMAGE: smallstep/step-kms-plugin
+      DOCKER_IMAGE: the78mole/step-kms-openbao-plugin
       CLOUD_TAG: cloud
       DEBIAN_TAG: trixie
       WOLFI_TAG: wolfi
@@ -72,7 +72,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          name: OpenBao Edition ${{ github.ref_name }}
           draft: false
           prerelease: ${{ steps.is_prerelease.outputs.IS_PRERELEASE }}
 
@@ -168,9 +168,9 @@ jobs:
       contents: write
     uses: smallstep/workflows/.github/workflows/docker-buildx-push.yml@main
     with:
-      platforms: linux/amd64,linux/386,linux/arm,linux/arm64
+      platforms: linux/amd64,linux/arm64,linux/arm/v7
       tags: ${{ needs.create_release.outputs.docker_tags }}
-      docker_image: smallstep/step-kms-plugin
+      docker_image: the78mole/step-kms-openbao-plugin
       docker_file: docker/Dockerfile
     secrets: inherit
 
@@ -182,9 +182,9 @@ jobs:
       contents: write
     uses: smallstep/workflows/.github/workflows/docker-buildx-push.yml@main
     with:
-      platforms: linux/amd64,linux/386,linux/arm,linux/arm64
+      platforms: linux/amd64,linux/arm64,linux/arm/v7
       tags: ${{ needs.create_release.outputs.docker_tags_debian }}
-      docker_image: smallstep/step-kms-plugin
+      docker_image: the78mole/step-kms-openbao-plugin
       docker_file: docker/Dockerfile.debian
     secrets: inherit
 
@@ -196,9 +196,9 @@ jobs:
       contents: write
     uses: smallstep/workflows/.github/workflows/docker-buildx-push.yml@main
     with:
-      platforms: linux/amd64,linux/386,linux/arm,linux/arm64
+      platforms: linux/amd64,linux/arm64,linux/arm/v7
       tags: ${{ needs.create_release.outputs.docker_tags_cloud }}
-      docker_image: smallstep/step-kms-plugin
+      docker_image: the78mole/step-kms-openbao-plugin
       docker_file: docker/Dockerfile.cloud
     secrets: inherit
 
@@ -212,6 +212,6 @@ jobs:
     with:
       platforms: linux/amd64
       tags: ${{ needs.create_release.outputs.docker_tags_wolfi }}
-      docker_image: smallstep/step-kms-plugin
+      docker_image: the78mole/step-kms-openbao-plugin
       docker_file: docker/Dockerfile.wolfi
     secrets: inherit

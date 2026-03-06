@@ -48,25 +48,25 @@ QUERY PARAMETERS:
     - se=true       Search only keys on the Secure Enclave (requires signed binary)
     - (no param)    Search all keys on both Keychain and Secure Enclave`,
 	Example: `  # Search all keys on macOS Keychain/Secure Enclave:
-  step-kms-plugin search mackms:
+  step-kms-openbao-plugin search mackms:
 
   # Search all keys with a custom tag:
-  step-kms-plugin search mackms:tag=com.example.crypto
+  step-kms-openbao-plugin search mackms:tag=com.example.crypto
 
   # Search all keys (application and attestation keys) on a TPM:
-  step-kms-plugin search tpmkms:
+  step-kms-openbao-plugin search tpmkms:
 
   # Search all keys on a TPM with a custom storage directory:
-  step-kms-plugin search tpmkms:storage-directory=/tmp/tpmobjects
+  step-kms-openbao-plugin search tpmkms:storage-directory=/tmp/tpmobjects
 
   # Search only attestation keys (AKs) on a TPM:
-  step-kms-plugin search tpmkms:ak=true
+  step-kms-openbao-plugin search tpmkms:ak=true
 
   # Search only application keys (non-AKs) on a TPM:
-  step-kms-plugin search tpmkms:ak=false
+  step-kms-openbao-plugin search tpmkms:ak=false
 
   # Search TPM keys and output details in JSON format with public keys:
-  step-kms-plugin search --json tpmkms:ak=false`,
+  step-kms-openbao-plugin search --json tpmkms:ak=false`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
 			return showErrUsage(cmd)
