@@ -176,7 +176,10 @@ func TestIntegration_GetPublicKey(t *testing.T) {
 	}
 
 	// Verify it matches the key from create
-	origKey := createResp.PublicKey.(*ecdsa.PublicKey)
+	origKey, ok := createResp.PublicKey.(*ecdsa.PublicKey)
+	if !ok {
+		t.Fatalf("CreateKey returned %T, expected *ecdsa.PublicKey", createResp.PublicKey)
+	}
 	if !ecKey.Equal(origKey) {
 		t.Error("GetPublicKey returned a different key than CreateKey")
 	}
@@ -350,7 +353,10 @@ func TestIntegration_SignerPublicKeyMatchesCreate(t *testing.T) {
 	if !ok {
 		t.Fatalf("signer.Public() returned %T, expected *ecdsa.PublicKey", signerPub)
 	}
-	ecCreate := createPub.(*ecdsa.PublicKey)
+	ecCreate, ok := createPub.(*ecdsa.PublicKey)
+	if !ok {
+		t.Fatalf("CreateKey returned %T, expected *ecdsa.PublicKey", createPub)
+	}
 
 	if !ecSigner.Equal(ecCreate) {
 		t.Error("signer.Public() does not match CreateKey response public key")
