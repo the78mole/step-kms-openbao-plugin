@@ -469,3 +469,4 @@ MIICQjCCAeigAwIBAgIRANfNWEXAMPLE3zJ+jRZ4TbUwCgYIKoZIzj0EAwIwKTEn
 ```
 
 Note: To use this client certificate against a server, the server needs to trust the intermediate CA rather than the root CA. That's because YubiKeys only support one certificate per key slot (in this case, the client certificate). On your server, you can either trust the intermediate by itself, or a PEM bundle consisting of the intermediate CA first, then the root CA.
+
