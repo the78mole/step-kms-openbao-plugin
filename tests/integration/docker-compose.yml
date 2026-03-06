@@ -1,0 +1,80 @@
+version: "3.8"
+
+services:
+  openbao:
+    image: quay.io/openbao/openbao:latest
+    container_name: openbao-dev
+    cap_add:
+      - IPC_LOCK
+    environment:
+      BAO_DEV_ROOT_TOKEN_ID: dev-root-token
+      BAO_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    ports:
+      - "8200:8200"
+    healthcheck:
+      test: ["CMD", "bao", "status", "-address=http://127.0.0.1:8200"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - openbao-net
+
+  setup:
+    image: quay.io/openbao/openbao:latest
+    container_name: openbao-setup
+    depends_on:
+      openbao:
+        condition: service_healthy
+    environment:
+      BAO_ADDR: http://openbao:8200
+      BAO_TOKEN: dev-root-token
+    volumes:
+      - ./init-scripts:/scripts:ro
+    entrypoint: ["/bin/sh", "/scripts/setup-openbao.sh"]
+    networks:
+      - openbao-net
+
+  step-ca:
+    image: smallstep/step-ca:latest
+    container_name: step-ca
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    environment:
+      DOCKER_STEPCA_INIT_NAME: "OpenBao Test CA"
+      DOCKER_STEPCA_INIT_DNS_NAMES: "step-ca,localhost"
+      DOCKER_STEPCA_INIT_REMOTE_MANAGEMENT: "true"
+      OPENBAO_ADDR: http://openbao:8200
+      OPENBAO_TOKEN: dev-root-token
+    volumes:
+      - step-ca-data:/home/step
+      - ./config:/config:ro
+      - plugin-bin:/usr/local/bin/plugins:ro
+    ports:
+      - "9000:9000"
+    networks:
+      - openbao-net
+
+  tester:
+    image: smallstep/step-cli:latest
+    container_name: tester
+    depends_on:
+      step-ca:
+        condition: service_started
+    environment:
+      OPENBAO_ADDR: http://openbao:8200
+      OPENBAO_TOKEN: dev-root-token
+    volumes:
+      - ./init-scripts:/scripts:ro
+      - plugin-bin:/usr/local/bin/plugins:ro
+    entrypoint: ["/bin/sh", "/scripts/run-test.sh"]
+    networks:
+      - openbao-net
+
+volumes:
+  step-ca-data:
+  plugin-bin:
+
+networks:
+  openbao-net:
+    driver: bridge

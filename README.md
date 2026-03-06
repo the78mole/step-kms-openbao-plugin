@@ -1,25 +1,28 @@
-# step-kms-plugin
+# step-kms-openbao-plugin
 
-This is a tool that helps manage keys and certificates on a cloud KMSs and HSMs.
+This is a fork of [step-kms-plugin](https://github.com/smallstep/step-kms-plugin)
+that adds native support for [OpenBao](https://openbao.org/) (and legacy HashiCorp
+Vault) as a KMS backend via the Transit secrets engine.
+
 It can be used independently, or as a plugin for [`step`](https://github.com/smallstep/cli).
 
-> ⚠️ This tool is currently in beta mode and its usage of might change without
+> ⚠️ This tool is currently in beta mode and its usage might change without
 > announcements.
 
 ## Installation
 
-There's two installation options:
+There are two installation options:
 
-- The most generic way to install `step-kms-plugin` is to use `go install` to
+- The most generic way to install `step-kms-openbao-plugin` is to use `go install` to
 compile it and install it in your `$GOBIN`, which defaults to `$(go env GOPATH)/bin`.
 
   ```console
   go install github.com/smallstep/step-kms-plugin@latest
   ```
 
-- Alternatively, download the [latest release binary for your platform](https://github.com/smallstep/step-kms-plugin/releases).
+- Alternatively, download the [latest release binary for your platform](https://github.com/the78mole/step-kms-openbao-plugin/releases).
 
-To use `step-kms-plugin` as a plugin for `step` (eg. `step kms create ...`),
+To use `step-kms-openbao-plugin` as a plugin for `step` (eg. `step kms create ...`),
 add it to your `$PATH` or to `$(step path --base)/plugins`.
 
 ## Supported KMSs
@@ -27,6 +30,8 @@ add it to your `$PATH` or to `$(step path --base)/plugins`.
 The following Key Management Systems (KMSs) are supported, but not all of
 them provide the full functionality:
 
+* **[OpenBao Transit](https://openbao.org/)** _(new — default build)_
+* [HashiCorp Vault Transit](https://www.vaultproject.io/) _(legacy — build with `-tags legacyvault`)_
 * PKCS #11 modules
 * [TPM 2.0](https://trustedcomputinggroup.org/resource/tpm-library-specification/)
 * [Amazon AWS KMS](https://aws.amazon.com/kms/)
@@ -35,21 +40,81 @@ them provide the full functionality:
 * [YubiKey PIV](https://developers.yubico.com/PIV/)
 * ssh-agent
 
+## OpenBao Transit KMS
+
+The OpenBao backend allows you to use the [Transit secrets engine](https://openbao.org/docs/secrets/transit/)
+for asymmetric key operations. It supports:
+
+- **Key types:** ECDSA (P-256, P-384, P-521), RSA (2048, 3072, 4096), Ed25519
+- **Operations:** Key creation, public key retrieval, signing
+- **Authentication:** Token (`OPENBAO_TOKEN`), AppRole, mTLS (client certificates)
+
+### Configuration
+
+Set the following environment variables:
+
+| Variable | Description |
+|---|---|
+| `OPENBAO_ADDR` | Address of the OpenBao server (e.g., `https://openbao:8200`) |
+| `OPENBAO_TOKEN` | Authentication token |
+| `OPENBAO_CACERT` | Path to CA cert for TLS verification |
+| `OPENBAO_CLIENT_CERT` | Path to client cert for mTLS |
+| `OPENBAO_CLIENT_KEY` | Path to client key for mTLS |
+
+Or pass parameters via the URI:
+
+```
+openbao:key-name?mount=transit&address=https://openbao:8200
+```
+
+### OpenBao Examples
+
+```console
+# Create an EC P-256 key in OpenBao Transit:
+step-kms-openbao-plugin create 'openbao:my-ec-key'
+
+# Create an RSA 3072-bit key:
+step-kms-openbao-plugin create --kty RSA --size 3072 'openbao:my-rsa-key'
+
+# Get the public key:
+step-kms-openbao-plugin key 'openbao:my-ec-key'
+
+# Sign data:
+step-kms-openbao-plugin sign --in data.txt 'openbao:my-ec-key'
+
+# Use a custom mount and address:
+step-kms-openbao-plugin create 'openbao:my-key?mount=my-transit&address=https://openbao:8200'
+```
+
+### Build Tags
+
+- **Default build** includes the OpenBao backend (`//go:build !legacyvault`).
+- **Legacy build** with `-tags legacyvault` includes HashiCorp Vault support instead
+  (uses `VAULT_ADDR`, `VAULT_TOKEN` environment variables and the `hashivault:` URI scheme).
+
+```console
+# Default build (OpenBao)
+go build -o step-kms-openbao-plugin .
+
+# Legacy build (HashiCorp Vault)
+go build -tags legacyvault -o step-kms-openbao-plugin .
+```
+
 ## Setting up `step-ca`?
 
 If you're setting up a `step-ca` PKI on one of the supported KMSs, check out our [detailed tutorials in our Cryptographic Protection docs](https://smallstep.com/docs/step-ca/cryptographic-protection/).
 
 ## Authenticating to a Cloud KMS provider
 
-If you use `step-kms-plugin` with a cloud provider, you will need to authenticate to the cloud provider.
+If you use `step-kms-openbao-plugin` with a cloud provider, you will need to authenticate to the cloud provider.
 Here are the required API permissions and authentication methods for each provider.
 
 ### AWS KMS
 
-`step-kms-plugin` authenticates to AWS using the same approach as any AWS Go SDK program.
+`step-kms-openbao-plugin` authenticates to AWS using the same approach as any AWS Go SDK program.
 See the [AWS Go SDK documentation](https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/#specifying-credentials) for details.
 
-The following IAM role Actions may be required by `step-kms-plugin`:
+The following IAM role Actions may be required by `step-kms-openbao-plugin`:
 
 ```
 kms:GetPublicKey
@@ -63,13 +128,13 @@ Notes:
 
 ### Azure Key Vault
 
-Authentication to Azure is handled via environment variables; we recommend using either [file-based authentication](https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication) via the `AZURE_AUTH_LOCATION` environment variable, or using a managed identity and setting the `AZURE_TENANT_ID` and `AZURE_CLIENT_ID` variables when running `step-kms-plugin`
+Authentication to Azure is handled via environment variables; we recommend using either [file-based authentication](https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication) via the `AZURE_AUTH_LOCATION` environment variable, or using a managed identity and setting the `AZURE_TENANT_ID` and `AZURE_CLIENT_ID` variables when running `step-kms-openbao-plugin`
 
 Alternatively, you can create a [service principal](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli) and set the `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, and `AZURE_CLIENT_SECRET` variables. See Option 1 under [Authentication Methods for Azure SDK for Go](https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#-option-1-define-environment-variables) for examples of authentication methods and environment variables.
 
 For local development and testing, Azure CLI credentials are used if no authentication environment variables are set.
 
-These are the Azure RBAC role actions used by `step-kms-plugin`:
+These are the Azure RBAC role actions used by `step-kms-openbao-plugin`:
 
 ```
 Key Vault Crypto Officer
@@ -78,14 +143,14 @@ Key Vault Certificates Officer
 ```
 
 Notes:
-* It is recommended to restrict permissions to the vaults that you will use `step-kms-plugin` with.
+* It is recommended to restrict permissions to the vaults that you will use `step-kms-openbao-plugin` with.
 * Azure has several built-in [RBAC roles for Key Vault](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide?tabs=azure-cli#azure-built-in-roles-for-key-vault-data-plane-operations).
 
 ### Google Cloud KMS
 
 To authenticate, be sure you have installed [the `gcloud` CLI](https://cloud.google.com/sdk/docs/install) and have [configured Google Cloud application default credentials](https://developers.google.com/accounts/docs/application-default-credentials) in your local environment, eg. by running `gcloud auth application-default login`.
 
-The following Cloud KMS permissions may be required for `step-kms-plugin`:
+The following Cloud KMS permissions may be required for `step-kms-openbao-plugin`:
 
 ```
 cloudkms.cryptoKey.create
@@ -103,19 +168,19 @@ resourcemanager.projects.get
 
 Notes:
 * It is recommended that you scope the IAM role permissions to specific key rings
-* When creating a key, if the key ring does not exist, `step-kms-plugin` will attempt to create it first.
+* When creating a key, if the key ring does not exist, `step-kms-openbao-plugin` will attempt to create it first.
 
 ## General Usage
 
-`step-kms-plugin` can be used as a standalone application or in conjunction with
+`step-kms-openbao-plugin` can be used as a standalone application or in conjunction with
 `step`.
 
-The commands under `step kms` will directly call `step-kms-plugin` with the
+The commands under `step kms` will directly call `step-kms-openbao-plugin` with the
 given arguments. For example, these two commands are equivalent:
 
 ```console
 step kms create --kty EC --crv P384 'pkcs11:token=smallstep;id=1000;object=mykey?pin-source=/dev/shm/pass.txt'
-step-kms-plugin create --kty EC --crv P384 'pkcs11:token=smallstep;id=1000;object=mykey?pin-source=/dev/shm/pass.txt'
+step-kms-openbao-plugin create --kty EC --crv P384 'pkcs11:token=smallstep;id=1000;object=mykey?pin-source=/dev/shm/pass.txt'
 ```
 
 For the rest of the examples, we are going to use the plugin usage, `step kms`,
@@ -137,7 +202,7 @@ softhsm2-util --delete-token --token smallstep
 
 ### p11-kit integration
 
-When `step-kms-plugin` is used with PKCS #11, it needs the filename of the PKCS
+When `step-kms-openbao-plugin` is used with PKCS #11, it needs the filename of the PKCS
 #11 module to load. The module can be directly passed using the `module-path`
 parameter. But if it is not defined, it will use the
 [p11-kit-proxy](https://p11-glue.github.io/p11-glue/p11-kit/manual/sharing.html)
@@ -161,8 +226,8 @@ module: /usr/local/lib/softhsm/libsofthsm2.so
 This configuration will make these commands equivalent:
 
 ```console
-step-kms-plugin create --kty EC --crv P384 'pkcs11:token=smallstep;id=1000;object=mykey?pin-value=password'
-step-kms-plugin create --kty EC --crv P384 'pkcs11:module-path=/usr/local/lib/softhsm/libsofthsm2.so;token=smallstep;id=1000;object=mykey?pin-value=password'
+step-kms-openbao-plugin create --kty EC --crv P384 'pkcs11:token=smallstep;id=1000;object=mykey?pin-value=password'
+step-kms-openbao-plugin create --kty EC --crv P384 'pkcs11:module-path=/usr/local/lib/softhsm/libsofthsm2.so;token=smallstep;id=1000;object=mykey?pin-value=password'
 ```
 
 In the following sections, we will skip the `module-path` and assume that
@@ -289,7 +354,7 @@ iT/enoe6zXfz4bZolrQUoYf+B5bDhn++cfkgM4x4ozqX8xd6lljPMODGB3Z43rfvUHc3A//ULzN8DjAz
 
 #### Example: Signing a Root CA with step
 
-The `step-kms-plugin` is automatically used by `step certificate create` and
+The `step-kms-openbao-plugin` is automatically used by `step certificate create` and
 `step certificate sign` commands if we use the `--kms` flag. With these
 commands, we can initialize our PKI using a key stored in a KMS.
 
