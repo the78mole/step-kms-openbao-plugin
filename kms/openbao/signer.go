@@ -4,7 +4,6 @@ package openbao
 
 import (
 	"crypto"
-	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
 	"encoding/base64"
@@ -76,12 +75,6 @@ func (s *Signer) Sign(_ io.Reader, digest []byte, opts crypto.SignerOpts) ([]byt
 	sig, err := parseTransitSignature(sigRaw)
 	if err != nil {
 		return nil, err
-	}
-
-	// For ECDSA keys, Transit returns a DER-encoded signature which is what
-	// crypto.Signer expects, so we return it as-is.
-	if _, ok := s.pub.(*ecdsa.PublicKey); ok {
-		return sig, nil
 	}
 
 	return sig, nil

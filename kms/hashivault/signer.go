@@ -4,7 +4,6 @@ package hashivault
 
 import (
 	"crypto"
-	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
 	"encoding/base64"
@@ -71,10 +70,6 @@ func (s *Signer) Sign(_ io.Reader, digest []byte, opts crypto.SignerOpts) ([]byt
 	sig, err := parseTransitSignature(sigRaw)
 	if err != nil {
 		return nil, err
-	}
-
-	if _, ok := s.pub.(*ecdsa.PublicKey); ok {
-		return sig, nil
 	}
 
 	return sig, nil
